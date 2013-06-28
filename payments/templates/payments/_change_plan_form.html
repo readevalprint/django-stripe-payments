@@ -1,21 +1,34 @@
 {% load url from future %}
-{% load bootstrap_tags %}
+{% load bootstrap_tags i18n %}
 
-<div class="change-subscription">
-    <h2>Change Subscription</h2>
-    <p class="lead">
-        {% if request.user.customer.current_subscription.plan %}
-            Your currently have the <strong>{{ request.user.customer.current_subscription.plan_display }}</strong> plan.
-        {% else %}
-            You currently do not have a plan.
-        {% endif %}
-    </p>
-    {% if error %}
-        <div class="alert alert-error">{{ error }}</div>
+<div class="row change-subscription">
+  <h2>Change Subscription</h2>
+  <p class="lead">
+  {% if request.user.customer.current_subscription.plan %}
+    Your currently have the <strong>{{ request.user.customer.current_subscription.plan_display }}</strong> plan.
+
+    {% if request.user.customer.current_subscription.status == "canceled" %}
+      {% if request.user.customer.current_subscription.is_period_current %}
+        <div class="alert alert-warning lead">
+          Your subscription has been <strong>canceled</strong> but you can continue to use the site for another <strong>{{ request.user.customer.current_subscription.current_period_end|timeuntil }}</strong>.
+        </div>
+      {% else %}
+        <div class="alert alert-danger lead">
+          Your subscription has been <strong>canceled</strong>.
+        </div>
+      {% endif %}
     {% endif %}
-    <form action="{% url 'payments_ajax_change_plan' %}" method="POST" class="form-inline ajax" data-replace-closest=".change-subscription">
-        {% csrf_token %}
-        {{ form|as_bootstrap }}
-        <button type="submit" class="btn btn-primary">Change</button>
-    </form>
+  {% else %}
+    You currently do not have a plan.
+  {% endif %}
+  </p>
+  {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+  <form action="{% url 'payments_ajax_change_plan' %}" method="POST" class="form-inline ajax" data-replace-closest=".change-subscription">
+    {% csrf_token %}
+    {{ form|as_bootstrap }}
+    <button type="submit" class="btn btn-primary">Change</button>
+  </form>
+  <a href="{% url "payments_cancel" %}">{% trans "Cancel subscription" %}</a>
 </div>
